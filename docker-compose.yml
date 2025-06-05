@@ -1,0 +1,41 @@
+### ✅ 2. docker-compose.yml (Backend uniquement ici)
+# Fichier: docker-compose.yml
+version: '3.8'
+
+services:
+  app:
+    build: .
+    image: ghcr.io/<samwin25>/carnet-de-recettes-laravel-tailwind:latest
+    container_name: laravel-app
+    restart: unless-stopped
+    ports:
+      - "9008:8000"
+    volumes:
+      - .:/apps/carnet-de-recettes-laravel-tailwind
+    depends_on:
+      - db
+    environment:
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+
+  db:
+    image: postgres:15
+    container_name: postgres-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/apps/carnet-de-recettes-laravel-tailwind/storage
+    environment:
+      - POSTGRES_DB=${DB_DATABASE}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+
+volumes:
+  pgdata:
