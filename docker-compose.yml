@@ -1,11 +1,10 @@
 ### ✅ 2. docker-compose.yml (Backend uniquement ici)
 # Fichier: docker-compose.yml
-version: '3.8'
 
 services:
   app:
     build: .
-    image: ghcr.io/<samwin25>/carnet-de-recettes-laravel-tailwind:latest
+    image: ghcr.io/samwin25/carnet-de-recettes-laravel-tailwind:latest
     container_name: laravel-app
     restart: unless-stopped
     ports:
