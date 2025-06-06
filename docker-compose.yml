@@ -28,7 +28,7 @@ services:
     container_name: postgres-db
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "15435:5432"
     volumes:
       - pgdata:/apps/carnet-de-recettes-laravel-tailwind/storage
     environment:
