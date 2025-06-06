@@ -30,6 +30,7 @@ COPY . .
 RUN composer dump-autoload --optimize
 
 RUN chown -R www-data:www-data /var/www && chmod -R 755 /var/www
+RUN apt-get update && apt-get install -y iputils-ping netcat-traditional postgresql-client
 
 # Pas de php artisan serve en production !
 CMD ["php-fpm"]
