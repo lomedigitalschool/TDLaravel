@@ -29,7 +29,7 @@ services:
     ports:
       - "9008:80"
     volumes:
-      - ~/apps/carnet-de-recettes-laravel
+      - .:/var/www
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - app
