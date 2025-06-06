@@ -1,7 +1,7 @@
 *.log
 .DS_Store
 .env
-.env.sqlite
+.env.local
 database/*.sqlite
 .env.backup
 .env.production
