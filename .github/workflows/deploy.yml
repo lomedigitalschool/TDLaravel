@@ -30,7 +30,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd ~/apps/carnet-de-recettes-laravel
-            git pull origin main
+            git pull origin carnet-de-recettes-laravel
             docker compose pull
             docker compose down
             docker compose up -d --build
