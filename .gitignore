@@ -1,8 +1,9 @@
 *.log
 .DS_Store
 .env
-.env.local
-database/*.sqlite
+# Autoriser la DB pour Docker
+!database/database.sqlite
+
 .env.backup
 .env.production
 .phpactor.json

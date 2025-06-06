@@ -6,6 +6,11 @@ on:
       - carnet-de-recettes-laravel-tailwind
       - develop
 
+
+
+volumes:
+      - ./database:/var/www/html/database
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
