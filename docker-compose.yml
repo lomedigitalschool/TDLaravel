@@ -6,8 +6,10 @@ services:
     image: ghcr.io/samwin25/carnet-de-recettes-laravel-tailwind:latest
     container_name: laravel-app
     restart: unless-stopped
+    links:
+      - db:postgres-db
     volumes:
-      - .:/var/www
+      - ~/apps/carnet-de-recettes-laravel
     depends_on:
       - db
     environment:
@@ -27,7 +29,7 @@ services:
     ports:
       - "9008:80"
     volumes:
-      - .:/var/www
+      - ~/apps/carnet-de-recettes-laravel
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - app
