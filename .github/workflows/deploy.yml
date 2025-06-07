@@ -38,6 +38,7 @@ jobs:
             docker rm carnet-app || true
 
             echo "📄 Injecting .env file..."
+            mkdir -p $HOME/apps/carnet-de-recettes-laravel
             cat << 'EOF' > $HOME/apps/carnet-de-recettes-laravel/.env
             ${{ secrets.LARAVEL_ENV }}
             EOF
