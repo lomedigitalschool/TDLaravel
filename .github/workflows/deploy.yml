@@ -35,6 +35,6 @@ jobs:
             docker rm carnet-app || true
             docker run -d \
               --name carnet-app \
-              -p 9008:9000 \
+              -p 9010:9000 \
               -v ${{ secrets.APP_DIRECTORY }}/.env:/var/www/.env \
               ghcr.io/${{ secrets.DOCKER_USERNAME }}/carnet-de-recettes-laravel:latest
