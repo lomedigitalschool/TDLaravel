@@ -29,9 +29,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [ProfileController::class, 'edit'])->name('edit');
         Route::patch('/', [ProfileController::class, 'update'])->name('update');
         Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
-        Route::put('/recettes/{recette}', [RecetteController::class, 'update'])->name('recettes.update');
-        Route::get('/recettes/{id}/edit', [RecetteController::class, 'edit'])->name('recettes.edit');
-        Route::delete('/recettes/{id}', [RecetteController::class, 'destroy'])->name('recettes.destroy');
+        Route::put('/recettes/{recette}', [RecetteController::class, 'update'])->name('recettes.update_profile');
+        Route::get('/recettes/{id}/edit', [RecetteController::class, 'edit'])->name('recettes.edit_profile');
+        Route::delete('/recettes/{id}', [RecetteController::class, 'destroy'])->name('recettes.destroy_profile');
         Route::get('/recettes/create', [RecetteController::class, 'create'])->name('recettes.create');
         Route::post('/recettes', [RecetteController::class, 'store'])->name('recettes.store');
     });
