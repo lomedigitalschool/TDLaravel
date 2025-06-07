@@ -29,7 +29,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [ProfileController::class, 'edit'])->name('edit');
         Route::patch('/', [ProfileController::class, 'update'])->name('update');
         Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
-        Route::get('/recettes/{recette}/edit', [RecetteController::class, 'edit'])->name('recettes.edit');
         Route::put('/recettes/{recette}', [RecetteController::class, 'update'])->name('recettes.update');
         Route::get('/recettes/{id}/edit', [RecetteController::class, 'edit'])->name('recettes.edit');
         Route::delete('/recettes/{id}', [RecetteController::class, 'destroy'])->name('recettes.destroy');
