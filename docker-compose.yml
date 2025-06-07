@@ -3,30 +3,39 @@ version: '3.8'
 services:
   app:
     build: .
-    container_name: carnet_recettes_app
+    container_name: carnet-app
     image: ghcr.io/samwin25/carnet-de-recettes-laravel:latest
     ports:
       - "9010:9000"
     volumes:
       - .:/var/www
     environment:
-      APP_ENV: production
+      APP_ENV: local
       APP_KEY: ${APP_KEY}
       DB_CONNECTION: pgsql
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
+      DB_HOST: db
+      DB_PORT: 5432
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
     depends_on:
       - db
+    networks:
+      - carnet-network
 
   db:
     image: postgres:15
+    container_name: carnet-db
     restart: always
+    ports:
+      - "5433:5432"
     environment:
       POSTGRES_DB: ${DB_DATABASE}
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "5433:5432"
+    networks:
+      - carnet-network
+
+networks:
+  carnet-network:
+    driver: bridge
