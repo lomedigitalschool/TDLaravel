@@ -249,5 +249,7 @@ function confirmDeleteImage() {
     </button>
 </div>
 
+</form>
+
 
 

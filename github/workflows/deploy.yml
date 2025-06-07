@@ -1,0 +1,35 @@
+name: Deploy Laravel App
+
+on:
+  push:
+    branches:
+      - carnet-de-recettes-laravel-tailwind
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Log in to GHCR
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+    - name: Build Docker image
+      run: docker build -t ghcr.io/${{ github.repository }}:latest .
+
+    - name: Push Docker image
+      run: docker push ghcr.io/${{ github.repository }}:latest
+
+    - name: Deploy to Remote Server via SSH
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        host: 157.180.38.74
+        username: samson
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: 22
+        script: |
+          docker pull ghcr.io/${{ github.repository }}:latest
+          docker stop carnet_recettes_app || true && docker rm carnet_recettes_app || true
+          docker run -d --name carnet_recettes_app -p 9008:9000 --env-file ~/apps/carnet-de-recettes-laravel/.env ghcr.io/${{ github.repository }}:latest

@@ -1,19 +1,21 @@
-FROM php:8.3-cli
+FROM php:8.3-fpm
 
-# Installer dépendances système
+# Install dependencies
 RUN apt-get update && apt-get install -y \
-    zip unzip curl sqlite3 libsqlite3-dev libzip-dev \
-    && docker-php-ext-install pdo pdo_sqlite
+    git curl zip unzip libpq-dev libonig-dev libxml2-dev \
+    && docker-php-ext-install pdo pdo_pgsql
 
-# Installer Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Copier les fichiers Laravel
-WORKDIR /var/www/html
+WORKDIR /var/www
+
 COPY . .
 
-# Installer les dépendances Laravel
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
-# Créer le fichier SQLite si manquant
-RUN mkdir -p database && touch database/database.sqlite && chmod 777 database/database.sqlite
+RUN php artisan config:cache \
+ && php artisan route:cache \
+ && php artisan view:cache
+
+CMD ["php-fpm"]

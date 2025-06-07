@@ -1,1 +1,11 @@
-public/storage
+node_modules
+vendor
+storage/logs
+.env
+*.log
+.git
+.gitignore
+docker-compose.yml
+phpunit.xml
+.vscode
+.DS_Store

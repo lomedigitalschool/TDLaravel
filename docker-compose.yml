@@ -1,18 +1,32 @@
-
+version: '3.8'
 
 services:
   app:
-    build:
-      context: .
-    container_name: carnet_laravel_app
+    build: .
+    container_name: carnet_recettes_app
+    image: ghcr.io/samwin25/carnet-de-recettes-laravel:latest
     ports:
-      - "9008:8000"
+      - "9008:9000"
     volumes:
-      - .:/var/www/html
-      - ./database:/var/www/html/database
-    working_dir: /var/www/html
-    command: sh -c "php artisan migrate && php artisan serve --host=0.0.0.0 --port=8000"
+      - .:/var/www
     environment:
-      APP_ENV: local
-      DB_CONNECTION: sqlite
-      DB_DATABASE: /var/www/html/database/database.sqlite
+      APP_ENV: production
+      APP_KEY: ${APP_KEY}
+      DB_CONNECTION: pgsql
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5433:5432"
