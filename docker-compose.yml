@@ -6,7 +6,7 @@ services:
     container_name: carnet_recettes_app
     image: ghcr.io/samwin25/carnet-de-recettes-laravel:latest
     ports:
-      - "9008:9000"
+      - "9010:9000"
     volumes:
       - .:/var/www
     environment:
