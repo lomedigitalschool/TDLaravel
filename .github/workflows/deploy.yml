@@ -30,11 +30,21 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
+            echo "➡️ Pulling latest image..."
             docker pull ghcr.io/${{ secrets.DOCKER_USERNAME }}/carnet-de-recettes-laravel:latest
+
+            echo "🛑 Stopping old container (if any)..."
             docker stop carnet-app || true
             docker rm carnet-app || true
+
+            echo "📄 Injecting .env file..."
+            cat << 'EOF' > $HOME/apps/carnet-de-recettes-laravel/.env
+          ${{ secrets.LARAVEL_ENV }}
+            EOF
+
+            echo "🚀 Starting new container..."
             docker run -d \
               --name carnet-app \
               -p 9010:9000 \
-              -$HOME/apps/carnet-de-recettes-laravel/.env:/var/www/.env \
-              ghcr.io/samwin25/carnet-de-recettes-laravel:latest
+              -v $HOME/apps/carnet-de-recettes-laravel/.env:/var/www/.env \
+              ghcr.io/${{ secrets.DOCKER_USERNAME }}/carnet-de-recettes-laravel:latest
