@@ -39,7 +39,7 @@ jobs:
 
             echo "📄 Injecting .env file..."
             cat << 'EOF' > $HOME/apps/carnet-de-recettes-laravel/.env
-          ${{ secrets.LARAVEL_ENV }}
+            ${{ secrets.LARAVEL_ENV }}
             EOF
 
             echo "🚀 Starting new container..."
