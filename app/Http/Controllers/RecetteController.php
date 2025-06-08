@@ -43,7 +43,7 @@ class RecetteController extends Controller
             'preparation_time' => 'nullable|integer',
             'type'             => 'nullable|in:petit-déjeuner,déjeuner,dîner',
             'rating'           => 'nullable|integer|min:1|max:5',
-            'image'            => 'nullable|image|max:2048',
+            'image'            => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         // Gérer l'image si elle est envoyée
