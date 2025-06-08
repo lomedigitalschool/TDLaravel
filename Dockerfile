@@ -25,8 +25,15 @@ RUN mkdir -p \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
+
+    # Forcer l'existence du dossier de vues
+RUN  
+
 # 7. Compiler les fichiers de configuration Laravel (nécessite un .env valide déjà copié)
-RUN php artisan config:cache \
+RUN mkdir -p resources/views \
+    && echo "<h1>Vue temporaire</h1>" > resources/views/_temp.blade.php \
+    && chown -R www-data:www-data resources/views \
+    &&php artisan config:cache \
     && php artisan route:cache \
     && php artisan view:cache
 

@@ -1,15 +1,27 @@
+# Ne pas inclure les dépendances locales
 node_modules
 vendor
-storage/logs
-storage/framework
-.env
+
+# Fichiers système / IDE
 .DS_Store
-*.log
 .idea
 .vscode
+
+# Fichiers inutiles dans l’image Docker
+*.log
+.env
+.env.backup
+.env.production
 phpunit.xml
 .git
 .gitignore
 docker-compose.yml
 set-env.sh
 switch-env.bat
+
+# Laravel : ne PAS exclure tout le dossier storage/framework !
+# On autorise ce qui est nécessaire pour compiler les vues
+# Donc pas de ligne `storage/framework` ici
+
+# Exclure les logs uniquement
+storage/logs
