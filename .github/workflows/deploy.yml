@@ -1,4 +1,4 @@
-name: Deploy Laravel to GHCR & Server
+name: Deploy Laravel to GHCR & Server with docker-compose
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
       - name: Push to GHCR
         run: docker push ghcr.io/${{ secrets.DOCKER_USERNAME }}/carnet-de-recettes-laravel:latest
 
-      - name: Deploy to server
+      - name: Deploy to server with docker-compose
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_IP }}
@@ -30,22 +30,99 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            echo "➡️ Pulling latest image..."
+            echo "📁 Creating project directory..."
+            mkdir -p $HOME/apps/carnet-de-recettes-laravel/nginx
+
+            echo "⬇️ Pulling latest image from GHCR..."
             docker pull ghcr.io/${{ secrets.DOCKER_USERNAME }}/carnet-de-recettes-laravel:latest
 
-            echo "🛑 Stopping old container (if any)..."
-            docker stop carnet-app || true
-            docker rm carnet-app || true
+            echo "🧹 Stopping old containers..."
+            cd $HOME/apps/carnet-de-recettes-laravel
+            docker compose down || true
 
             echo "📄 Injecting .env file..."
-            mkdir -p $HOME/apps/carnet-de-recettes-laravel
             cat << 'EOF' > $HOME/apps/carnet-de-recettes-laravel/.env
             ${{ secrets.LARAVEL_ENV }}
             EOF
 
-            echo "🚀 Starting new container..."
-            docker run -d \
-              --name carnet-app \
-              -p 9010:8000 \
-              -v $HOME/apps/carnet-de-recettes-laravel/.env:/var/www/.env \
-              ghcr.io/${{ secrets.DOCKER_USERNAME }}/carnet-de-recettes-laravel:latest
+            echo "📄 Writing docker-compose.yml..."
+            cat << 'EOF' > $HOME/apps/carnet-de-recettes-laravel/docker-compose.yml
+            version: '3.8'
+
+            services:
+              app:
+                container_name: carnet-app
+                image: ghcr.io/${{ secrets.DOCKER_USERNAME }}/carnet-de-recettes-laravel:latest
+                restart: unless-stopped
+                env_file: .env
+                working_dir: /var/www
+                volumes:
+                  - .:/var/www
+                depends_on:
+                  - db
+                networks:
+                  - carnet-network
+
+              db:
+                image: postgres:14
+                container_name: carnet-db
+                restart: unless-stopped
+                environment:
+                  POSTGRES_DB: recettes_db
+                  POSTGRES_USER: postgres
+                  POSTGRES_PASSWORD: samwin25
+                volumes:
+                  - carnet-db-data:/var/lib/postgresql/data
+                networks:
+                  - carnet-network
+
+              web:
+                image: nginx:stable-alpine
+                container_name: carnet-nginx
+                restart: unless-stopped
+                ports:
+                  - "9010:80"
+                volumes:
+                  - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+                  - .:/var/www
+                depends_on:
+                  - app
+                networks:
+                  - carnet-network
+
+            volumes:
+              carnet-db-data:
+
+            networks:
+              carnet-network:
+            EOF
+
+            echo "📄 Writing nginx/default.conf..."
+            cat << 'EOF' > $HOME/apps/carnet-de-recettes-laravel/nginx/default.conf
+            server {
+                listen 80;
+                index index.php index.html;
+                server_name localhost;
+
+                root /var/www/public;
+
+                location / {
+                    try_files \$uri \$uri/ /index.php?\$query_string;
+                }
+
+                location ~ \.php$ {
+                    fastcgi_pass app:9000;
+                    fastcgi_index index.php;
+                    include fastcgi_params;
+                    fastcgi_param SCRIPT_FILENAME /var/www/public\$fastcgi_script_name;
+                }
+
+                location ~ /\.ht {
+                    deny all;
+                }
+            }
+            EOF
+
+            echo "🚀 Launching docker stack..."
+            cd $HOME/apps/carnet-de-recettes-laravel
+            docker compose up -d --build
