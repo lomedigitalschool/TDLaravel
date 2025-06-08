@@ -14,6 +14,15 @@ WORKDIR /var/www
 # Copy app files
 COPY . .
 
+# Ensure necessary Laravel folders exist & have correct permissions
+RUN mkdir -p storage/framework/cache \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/logs \
+    bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
@@ -27,6 +36,11 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
 # Expose port (utile pour 'artisan serve')
 EXPOSE 8000
+
+RUN php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache
+
 
 #CMD ["php-fpm"]
 CMD php artisan serve --host=0.0.0.0 --port=8000
