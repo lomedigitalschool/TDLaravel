@@ -46,6 +46,6 @@ jobs:
             echo "🚀 Starting new container..."
             docker run -d \
               --name carnet-app \
-              -p 9010:9000 \
+              -p 9010:8000 \
               -v $HOME/apps/carnet-de-recettes-laravel/.env:/var/www/.env \
               ghcr.io/${{ secrets.DOCKER_USERNAME }}/carnet-de-recettes-laravel:latest
