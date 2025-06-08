@@ -28,5 +28,4 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 # Expose port (utile pour 'artisan serve')
 EXPOSE 9000
 
-# Démarrage (avec CMD JSON form)
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=9000"]
+CMD ["php-fpm"]
