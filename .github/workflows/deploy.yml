@@ -30,7 +30,9 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           source: "nginx.conf"
-          target: "$HOME/apps/carnet-de-recettes-laravel/nginx.conf"
+          target: "$HOME/apps/carnet-de-recettes-laravel/"
+          strip_components: 0
+          overwrite: true
 
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.0
@@ -133,6 +135,10 @@ jobs:
 
             echo "🚀 Launching stack..."
             docker compose up -d --build
+
+            echo "🔧 Fixing permissions inside app container..."
+                  docker exec carnet-app chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+
 
             echo "🧪 Checking if app is live..."
             for i in {1..10}; do

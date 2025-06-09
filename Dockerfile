@@ -31,6 +31,8 @@ RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 # Étape 8 : Donner les bonnes permissions (important pour storage et bootstrap/cache)
 RUN chown -R www-data:www-data /var/www \
     && chmod -R 775 storage bootstrap/cache
+    
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
 # Étape 9 : Générer la clé de l'application Laravel
 RUN php artisan key:generate

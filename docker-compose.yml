@@ -6,6 +6,7 @@ services:
     image: ghcr.io/samwin25/carnet-de-recettes-laravel:latest
     restart: unless-stopped
     env_file: .env
+    user: www-data
     working_dir: /var/www
     volumes:
       - ./storage:/var/www/storage
