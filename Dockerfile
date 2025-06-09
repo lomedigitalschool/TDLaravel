@@ -33,6 +33,9 @@ RUN mkdir -p \
 # 7. Compiler les fichiers Laravel si .env est présent
 RUN test -f .env && php artisan config:cache && php artisan route:cache && php artisan view:cache || echo ".env non présent, skipping artisan cache"
 
+
+RUN php artisan key:generate
+RUN php artisan migrate --force
 # Étape 9 : Exposer le port PHP-FPM
 EXPOSE 9000
 
