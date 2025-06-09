@@ -1,43 +1,45 @@
-FROM php:8.3-fpm
+# Étape 1 : Image de base officielle PHP avec extensions requises
+FROM php:8.3-fpm as base
 
-# 1. Installer les dépendances système et extensions PHP
+# Étape 2 : Installation des dépendances système
 RUN apt-get update && apt-get install -y \
-    git curl unzip zip libpng-dev libonig-dev libzip-dev libpq-dev \
+    libpq-dev \
+    zip \
+    unzip \
+    git \
+    curl \
+    libzip-dev \
+    libonig-dev \
+    libxml2-dev \
     && docker-php-ext-install pdo pdo_pgsql zip
 
-    # ✅ Modifier www.conf pour écouter sur 0.0.0.0
-RUN sed -i 's|listen = 127.0.0.1:9000|listen = 0.0.0.0:9000|' /usr/local/etc/php-fpm.d/www.conf
-
-# 2. Copier Composer depuis l'image officielle
+# Étape 3 : Installation de Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# 3. Définir le répertoire de travail
+# Étape 4 : Définir le répertoire de travail
 WORKDIR /var/www
 
-# 4. Copier tous les fichiers du projet
+# Étape 5 : Copier les fichiers de l'application
 COPY . .
 
-# 5. Installer les dépendances PHP
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# Étape 6 : Copier le fichier .env.example en .env s’il n’existe pas
+RUN cp .env.example .env
 
-# 6. Gérer les permissions Laravel
-RUN mkdir -p \
-    storage/framework/{cache,sessions,views} \
-    storage/logs \
-    bootstrap/cache \
-    resources/views \
-    && echo "<h1>Vue temporaire</h1>" > resources/views/_temp.blade.php \
-    && chown -R www-data:www-data storage bootstrap/cache resources/views \
+# Étape 7 : Installer les dépendances PHP avec Composer
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+
+# Étape 8 : Donner les bonnes permissions (important pour storage et bootstrap/cache)
+RUN chown -R www-data:www-data /var/www \
     && chmod -R 775 storage bootstrap/cache
 
-# 7. Compiler les fichiers Laravel si .env est présent
-RUN test -f .env && php artisan config:cache && php artisan route:cache && php artisan view:cache || echo ".env non présent, skipping artisan cache"
-
-
+# Étape 9 : Générer la clé de l'application Laravel
 RUN php artisan key:generate
-RUN php artisan migrate --force
-# Étape 9 : Exposer le port PHP-FPM
+
+# Étape 10 : Lancer les migrations (optionnel selon besoin)
+RUN php artisan migrate --force || true
+
+# Étape 11 : Exposer le port du conteneur
 EXPOSE 9000
 
-# 8. Démarrer PHP-FPM
+# Étape 12 : Commande de démarrage de PHP-FPM
 CMD ["php-fpm"]
