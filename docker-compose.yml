@@ -7,10 +7,12 @@ services:
     working_dir: /var/www
     volumes:
       - .:/var/www
+    expose:
+      - "9000"
     depends_on:
       - db
     networks:
-      - carnet-network
+      - app-network
 
   db:
     image: postgres:14
@@ -23,7 +25,7 @@ services:
     volumes:
       - carnet-db-data:/var/lib/postgresql/data
     networks:
-      - carnet-network
+      - app-network
 
   web:
     image: nginx:stable-alpine
@@ -37,7 +39,7 @@ services:
     depends_on:
       - app
     networks:
-      - carnet-network
+      - app-network
 
 volumes:
   carnet-db-data:
