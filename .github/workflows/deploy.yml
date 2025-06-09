@@ -31,7 +31,10 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script: |
             echo "📁 Creating project directory..."
-            mkdir -p $HOME/apps/carnet-de-recettes-laravel/nginx
+            mkdir -p $HOME/apps/carnet-de-recettes-laravel
+
+            echo "📄 Copying nginx.conf from repo..."
+            cp ./nginx.conf $HOME/apps/carnet-de-recettes-laravel/nginx.conf
 
             echo "⬇️ Pulling latest image from GHCR..."
             docker pull ghcr.io/${{ secrets.DOCKER_USERNAME }}/carnet-de-recettes-laravel:latest
@@ -57,13 +60,17 @@ jobs:
                 env_file: .env
                 working_dir: /var/www
                 volumes:
-                    - ./storage:/var/www/storage
-                    - ./bootstrap/cache:/var/www/bootstrap/cache
-
+                  - ./storage:/var/www/storage
+                  - ./bootstrap/cache:/var/www/bootstrap/cache
                 depends_on:
                   - db
                 networks:
                   - carnet-network
+                healthcheck:
+                  test: ["CMD", "curl", "-f", "http://localhost"]
+                  interval: 30s
+                  timeout: 10s
+                  retries: 3
 
               db:
                 image: postgres:14
@@ -85,9 +92,8 @@ jobs:
                 ports:
                   - "9010:80"
                 volumes:
-                   - ./nginx.conf:/etc/nginx/conf.d/default.conf
-                   - carnet-app-public:/var/www/public
-
+                  - ./nginx.conf:/etc/nginx/conf.d/default.conf
+                  - carnet-app-public:/var/www/public
                 depends_on:
                   - app
                 networks:
@@ -101,32 +107,20 @@ jobs:
               carnet-network:
             EOF
 
-            echo "📄 Writing nginx/default.conf..."
-            cat << 'EOF' > $HOME/apps/carnet-de-recettes-laravel/nginx/default.conf
-            server {
-                listen 80;
-                index index.php index.html;
-                server_name localhost;
-
-                root /var/www/public;
-
-                location / {
-                    try_files \$uri \$uri/ /index.php?\$query_string;
-                }
-
-                location ~ \.php$ {
-                    fastcgi_pass app:9000;
-                    fastcgi_index index.php;
-                    include fastcgi_params;
-                    fastcgi_param SCRIPT_FILENAME /var/www/public\$fastcgi_script_name;
-                }
-
-                location ~ /\.ht {
-                    deny all;
-                }
-            }
-            EOF
-
             echo "🚀 Launching docker stack..."
             cd $HOME/apps/carnet-de-recettes-laravel
-            docker compose up -d --build 
+            docker compose up -d --build
+
+            echo "✅ Waiting for app to be ready..."
+            for i in {1..10}; do
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:9010)
+              if [ "$STATUS" -eq 200 ]; then
+                echo "✅ Application is live and responding with HTTP 200"
+                exit 0
+              fi
+              echo "⏳ Waiting... ($i/10)"
+              sleep 5
+            done
+
+            echo "❌ Application did not respond with HTTP 200 after deployment"
+            exit 1
