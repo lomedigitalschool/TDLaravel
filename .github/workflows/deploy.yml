@@ -125,4 +125,4 @@ jobs:
 
             echo "🚀 Launching docker stack..."
             cd $HOME/apps/carnet-de-recettes-laravel
-            docker compose up -d --build
+            docker compose up -d --build 

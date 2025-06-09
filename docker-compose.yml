@@ -12,39 +12,52 @@ services:
       - "9000" # ✅ Tu exposes bien ton application Laravel
     depends_on:
       - db
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
     networks:
-      - carnet-network
+      - laravel
+    
+
+  
+
+  web:
+    image: nginx:stable-alpine
+    container_name: carnet-nginx
+    restart: always
+    ports:
+      - "9010:80" # seul point d'accès exposé
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - .:/var/www
+
+    depends_on:
+      - app
+    networks:
+      - laravel
+
 
   db:
-    image: postgres:14
-    container_name: carnet-db
-    restart: unless-stopped
+    image: postgres:17
+    container_name: carnet-postgres
+    restart: always
+    ports:
+      - "5433:5432"    # Utilise "always" pour redémarrer le conteneur en cas de plantage
     environment:
       POSTGRES_DB: recettes_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: samwin25
     volumes:
-      - carnet-db-data:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
     networks:
-      - carnet-network
-
-  web:
-    image: nginx:stable-alpine
-    container_name: carnet-nginx
-    restart: unless-stopped
-    ports:
-      - "9010:80" # seul point d'accès exposé
-    volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-      - .:/var/www/html
-
-    depends_on:
-      - app
-    networks:
-      - carnet-network
+      - laravel
 
 volumes:
-  carnet-db-data:
+  pgdata:
 
 networks:
-  carnet-network:
+  laravel:
