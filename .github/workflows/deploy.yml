@@ -95,6 +95,7 @@ jobs:
 
             volumes:
               carnet-db-data:
+              carnet-app-public:
 
             networks:
               carnet-network:
