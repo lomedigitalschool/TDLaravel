@@ -10,19 +10,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Login to GHCR
+      - name: Log in to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
       - name: Build Docker image
         run: docker build -t ghcr.io/${{ secrets.DOCKER_USERNAME }}/carnet-de-recettes-laravel:latest .
 
-      - name: Push to GHCR
+      - name: Push image to GHCR
         run: docker push ghcr.io/${{ secrets.DOCKER_USERNAME }}/carnet-de-recettes-laravel:latest
 
-      - name: Deploy to server with docker-compose
+      - name: Copy nginx.conf to server
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          source: "nginx.conf"
+          target: "$HOME/apps/carnet-de-recettes-laravel/nginx.conf"
+
+      - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_IP }}
@@ -32,25 +42,22 @@ jobs:
           script: |
             echo "📁 Creating project directory..."
             mkdir -p $HOME/apps/carnet-de-recettes-laravel
-
-            echo "📄 Copying nginx.conf from repo..."
-            cp ./nginx.conf $HOME/apps/carnet-de-recettes-laravel/nginx.conf
+            cd $HOME/apps/carnet-de-recettes-laravel
 
             echo "⬇️ Pulling latest image from GHCR..."
             docker pull ghcr.io/${{ secrets.DOCKER_USERNAME }}/carnet-de-recettes-laravel:latest
 
             echo "🧹 Stopping old containers..."
-            cd $HOME/apps/carnet-de-recettes-laravel
             docker compose down || true
 
             echo "📄 Injecting .env file..."
-            cat << 'EOF' > $HOME/apps/carnet-de-recettes-laravel/.env
+            cat << 'EOF' > .env
             ${{ secrets.LARAVEL_ENV }}
             EOF
 
             echo "📄 Writing docker-compose.yml..."
-            cat << 'EOF' > $HOME/apps/carnet-de-recettes-laravel/docker-compose.yml
-            version: '3.8'
+            cat << 'EOF' > docker-compose.yml
+            version: "3.9"
 
             services:
               app:
@@ -62,33 +69,23 @@ jobs:
                 volumes:
                   - ./storage:/var/www/storage
                   - ./bootstrap/cache:/var/www/bootstrap/cache
+                  - carnet-app-public:/var/www/public
                 depends_on:
                   - db
-                networks:
-                  - carnet-network
-                healthcheck:
-                  test: ["CMD", "curl", "-f", "http://localhost"]
-                  interval: 30s
-                  timeout: 10s
-                  retries: 3
-
-              db:
-                image: postgres:14
-                container_name: carnet-db
-                restart: unless-stopped
                 environment:
-                  POSTGRES_DB: recettes_db
-                  POSTGRES_USER: postgres
-                  POSTGRES_PASSWORD: samwin25
-                volumes:
-                  - carnet-db-data:/var/lib/postgresql/data
+                  DB_CONNECTION: pgsql
+                  DB_HOST: db
+                  DB_PORT: 5432
+                  DB_DATABASE: \${DB_DATABASE}
+                  DB_USERNAME: \${DB_USERNAME}
+                  DB_PASSWORD: \${DB_PASSWORD}
                 networks:
                   - carnet-network
 
               web:
                 image: nginx:stable-alpine
                 container_name: carnet-nginx
-                restart: unless-stopped
+                restart: always
                 ports:
                   - "9010:80"
                 volumes:
@@ -96,31 +93,57 @@ jobs:
                   - carnet-app-public:/var/www/public
                 depends_on:
                   - app
+                healthcheck:
+                  test: ["CMD", "curl", "-f", "http://localhost:80"]
+                  interval: 30s
+                  timeout: 10s
+                  retries: 5
                 networks:
                   - carnet-network
 
+              db:
+                image: postgres:17
+                container_name: carnet-postgres
+                restart: always
+                ports:
+                  - "5433:5432"
+                environment:
+                  POSTGRES_DB: recettes_db
+                  POSTGRES_USER: postgres
+                  POSTGRES_PASSWORD: samwin25
+                volumes:
+                  - pgdata:/var/lib/postgresql/data
+                networks:
+                  - carnet-network
+                healthcheck:
+                  test: ["CMD", "pg_isready", "-U", "postgres"]
+                  interval: 10s
+                  timeout: 5s
+                  retries: 5
+
             volumes:
-              carnet-db-data:
+              pgdata:
               carnet-app-public:
 
             networks:
               carnet-network:
+                external: true
+                name: carnet-network
             EOF
 
-            echo "🚀 Launching docker stack..."
-            cd $HOME/apps/carnet-de-recettes-laravel
+            echo "🚀 Launching stack..."
             docker compose up -d --build
 
-            echo "✅ Waiting for app to be ready..."
+            echo "🧪 Checking if app is live..."
             for i in {1..10}; do
               STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:9010)
               if [ "$STATUS" -eq 200 ]; then
-                echo "✅ Application is live and responding with HTTP 200"
+                echo "✅ App is live!"
                 exit 0
               fi
               echo "⏳ Waiting... ($i/10)"
               sleep 5
             done
 
-            echo "❌ Application did not respond with HTTP 200 after deployment"
+            echo "❌ App not live after retries."
             exit 1
