@@ -50,7 +50,7 @@ jobs:
 
             echo "📄 Création de docker-compose.yml..."
             cat << 'EOF' > docker-compose.yml
-            version: "3.9"
+            
 
             services:
               app:
@@ -99,7 +99,7 @@ jobs:
                 container_name: carnet-postgres
                 restart: always
                 ports:
-                  - "5433:5432"
+                  - "5435:5432"
                 environment:
                   POSTGRES_DB: recettes_db
                   POSTGRES_USER: postgres
