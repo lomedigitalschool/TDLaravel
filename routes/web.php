@@ -10,7 +10,7 @@ use App\Http\Controllers\RecetteController;
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
-    return view('welcome');
+    return 'Laravel fonctionne !';
 })->name('home'); // Ajout d'un nom pour faciliter les redirections
 
 /*
