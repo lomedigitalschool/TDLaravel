@@ -10,6 +10,7 @@ services:
     volumes:
       - ./storage:/var/www/storage
       - ./bootstrap/cache:/var/www/bootstrap/cache
+      - carnet-app-public:/var/www/public
     depends_on:
       - db
     environment:
@@ -30,7 +31,7 @@ services:
       - "9010:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./public:/var/www/public
+      - carnet-app-public:/var/www/public
     depends_on:
       - app
     healthcheck:
@@ -63,8 +64,13 @@ services:
 
 volumes:
   pgdata:
+  carnet-app-public:
+    external: false
 
 networks:
   carnet-network:
     external: true
     name: carnet-network
+
+  
+
