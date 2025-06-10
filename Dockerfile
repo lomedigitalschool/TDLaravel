@@ -26,7 +26,7 @@ COPY . .
 RUN cp .env.example .env
 
 # Étape 7 : Installer les dépendances PHP avec Composer
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
 # Étape 8 : Donner les bonnes permissions (important pour storage et bootstrap/cache)
 RUN chown -R www-data:www-data /var/www \
