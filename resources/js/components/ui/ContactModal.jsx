@@ -78,7 +78,7 @@ export default function ContactModal({
         if (modalTypes === 'create') {
             post(route('contacts.store'), {
                 preserveScroll: true,
-                forceFormData: true,
+
                 onSuccess: () => {
                     handleClose();
                     router.reload();
@@ -87,7 +87,7 @@ export default function ContactModal({
         } else {
             put(route('contacts.update', contact?.id), {
                 preserveScroll: true,
-                forceFormData: true,
+
                 onSuccess: () => {
                     handleClose();
                     router.reload();
