@@ -6,13 +6,15 @@ use Illuminate\Support\Facades\Route;
 
 // Route vers la page d'accueil (redirige vers le tableau de bord)
 Route::get('/', function () {
-    return redirect()->route('login');
+    return view('auth.login');
 });
 
+
 // Tableau de bord : liste les todos de l'utilisateur connecté
-Route::get('/dashboard', [TodoController::class, ''])
+Route::get('/dashboard', [TodoController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
+
 
 // Routes protégées pour utilisateur authentifié
 Route::middleware('auth')->group(function () {
