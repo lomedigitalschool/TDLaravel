@@ -5,15 +5,17 @@ use App\Http\Controllers\TodoController;
 use Illuminate\Support\Facades\Route;
 
 // Route vers la page d'accueil (redirige vers le tableau de bord)
+
+
 Route::get('/', function () {
-    return view('auth.login');
-});
+    return view('home'); // Vue publique non protégée
+})->name('home');
 
 
 // Tableau de bord : liste les todos de l'utilisateur connecté
 Route::get('/dashboard', [TodoController::class, 'index'])
     ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+    ->name('index');
 
 
 // Routes protégées pour utilisateur authentifié

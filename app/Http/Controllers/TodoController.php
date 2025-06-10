@@ -10,7 +10,7 @@ class TodoController extends Controller
 public function index()
     {
         $todos = auth()->user()->todos;
-        return view('dashboard', compact('todos'));
+        return view('home', compact('todos'));
     }
 
 
@@ -33,7 +33,7 @@ public function index()
             'due_date' => $request->due_date,
         ]);
 
-        return redirect()->route('dashboard')->with('success', 'Tâche ajoutée avec succès.');
+        return redirect()->route('home')->with('success', 'Tâche ajoutée avec succès.');
     }
 
     public function edit($id)
@@ -55,7 +55,7 @@ public function index()
 
         $todo->update($request->only(['title', 'description', 'due_date', 'is_completed']));
 
-        return redirect()->route('dashboard')->with('success', 'Tâche mise à jour.');
+        return redirect()->route('home')->with('success', 'Tâche mise à jour.');
     }
 
     public function destroy($id)
@@ -63,7 +63,7 @@ public function index()
         $todo = Todo::where('user_id', auth()->id())->findOrFail($id);
         $todo->delete();
 
-        return redirect()->route('dashboard')->with('success', 'Tâche supprimée.');
+        return redirect()->route('home')->with('success', 'Tâche supprimée.');
     }
 
     public function markAsCompleted($id)
@@ -71,6 +71,6 @@ public function index()
         $todo = auth()->user()->todos()->findOrFail($id);
         $todo->update(['is_completed' => true]);
 
-        return redirect()->route('dashboard')->with('success', 'Tâche marquée comme terminée.');
+        return redirect()->route('home')->with('success', 'Tâche marquée comme terminée.');
     }
 }
