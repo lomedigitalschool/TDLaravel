@@ -46,7 +46,7 @@ services:
     container_name: carnet-postgres
     restart: always
     ports:
-      - "5435:5432" # Port PostgreSQL exposé
+      - "5433:5432" # Port PostgreSQL exposé
     environment:
       POSTGRES_DB: recettes_db
       POSTGRES_USER: postgres

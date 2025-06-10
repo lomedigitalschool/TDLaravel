@@ -1,3 +1,5 @@
+# ✅ pipeline corrigée avec fichier nginx.conf intégré corrigé
+
 name: Deploy Laravel to GHCR & Server with docker-compose
 
 on:
@@ -34,7 +36,7 @@ jobs:
             mkdir -p $HOME/apps/carnet-de-recettes-laravel/docker/nginx
             cd $HOME/apps/carnet-de-recettes-laravel
 
-            echo "📄 Création du fichier nginx.conf..."
+            echo "📄 Création du fichier nginx.conf corrigé..."
             cat << 'EOF' > docker/nginx/nginx.conf
             events {}
 
@@ -44,21 +46,21 @@ jobs:
 
               server {
                 listen 80;
-                index index.php index.html;
                 server_name localhost;
 
                 root /var/www/public;
+                index index.php index.html;
 
                 location / {
-                  try_files \$uri \$uri/ /index.php?\$query_string;
+                  try_files $uri $uri/ /index.php?$query_string;
                 }
 
-                location ~ \.php\$ {
+                location ~ \.php$ {
                   include fastcgi_params;
                   fastcgi_pass carnet-app:9000;
                   fastcgi_index index.php;
-                  fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-                  fastcgi_param DOCUMENT_ROOT \$document_root;
+                  fastcgi_param SCRIPT_FILENAME /var/www/public$fastcgi_script_name;
+                  fastcgi_param DOCUMENT_ROOT /var/www/public;
                 }
 
                 location ~ /\.ht {
@@ -77,105 +79,22 @@ jobs:
             echo "🧹 Arrêt des anciens conteneurs..."
             docker compose down || true
 
-            echo "📄 Création du fichier .env..."
-            echo "${{ secrets.LARAVEL_ENV }}" > .env
-
-            echo "📄 Création de docker-compose.yml..."
-            cat << 'EOF' > docker-compose.yml
-            
-
-            services:
-              app:
-                container_name: carnet-app
-                image: ghcr.io/${{ secrets.DOCKER_USERNAME }}/carnet-de-recettes-laravel:latest
-                restart: unless-stopped
-                env_file: .env
-                working_dir: /var/www
-                volumes:
-                  - ./storage:/var/www/storage
-                  - ./bootstrap/cache:/var/www/bootstrap/cache
-                  - carnet-app-public:/var/www/public
-                depends_on:
-                  - db
-                environment:
-                  DB_CONNECTION: pgsql
-                  DB_HOST: db
-                  DB_PORT: 5435
-                  DB_DATABASE: \${DB_DATABASE}
-                  DB_USERNAME: \${DB_USERNAME}
-                  DB_PASSWORD: \${DB_PASSWORD}
-                networks:
-                  - carnet-network
-
-              web:
-                image: nginx:stable-alpine
-                container_name: carnet-nginx
-                restart: always
-                ports:
-                  - "9010:80"
-                volumes:
-                  - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-                  - carnet-app-public:/var/www/public
-                depends_on:
-                  - app
-                healthcheck:
-                  test: ["CMD", "curl", "-f", "http://localhost:80"]
-                  interval: 30s
-                  timeout: 10s
-                  retries: 5
-                networks:
-                  - carnet-network
-
-              db:
-                image: postgres:17
-                container_name: carnet-postgres
-                restart: always
-                ports:
-                  - "5435:5432"
-                environment:
-                  POSTGRES_DB: recettes_db
-                  POSTGRES_USER: postgres
-                  POSTGRES_PASSWORD: samwin25
-                volumes:
-                  - pgdata:/var/lib/postgresql/data
-                networks:
-                  - carnet-network
-                healthcheck:
-                  test: ["CMD", "pg_isready", "-U", "postgres"]
-                  interval: 10s
-                  timeout: 5s
-                  retries: 5
-
-            volumes:
-              pgdata:
-              carnet-app-public:
-
-            networks:
-              carnet-network:
-                external: true
-                name: carnet-network
-            EOF
-
-            echo "🚀 Lancement des conteneurs avec docker-compose..."
-            docker compose up -d --build
+            echo "🚀 Lancement des nouveaux conteneurs..."
+            docker compose up -d
 
             echo "🔧 Correction des permissions dans le conteneur Laravel..."
             docker exec carnet-app chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
-            docker exec carnet-app chmod -R 775 /var/www/storage /var/www/bootstrap/cache
-
 
             echo "🧪 Vérification que l'application est accessible..."
             for i in {1..10}; do
-              STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:9010)
-              if [ "$STATUS" -eq 200 ]; then
-                echo "✅ Application en ligne avec succès !"
+              sleep 5
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:9010 || true)
+              if [ "$STATUS" == "200" ]; then
+                echo "✅ L'application est en ligne."
                 exit 0
               fi
               echo "⏳ Tentative $i/10 en attente..."
-              sleep 5
             done
 
             echo "❌ L'application ne répond pas après 10 tentatives."
-            docker logs carnet-app
-            docker logs carnet-nginx
             exit 1
