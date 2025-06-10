@@ -6,9 +6,12 @@ use App\Models\JournalEntry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class JournalEntryController extends Controller
 {
+
+      use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
@@ -37,6 +40,8 @@ class JournalEntryController extends Controller
             'humeur' => 'nullable|in:heureux,triste,stressé,fatigué,motivé',
             'image' => 'nullable|image|max:2048',
             'est_public' => 'boolean',
+            
+            
         ]);
 
         $imagePath = null;
@@ -52,30 +57,35 @@ class JournalEntryController extends Controller
             'est_public' => $request->has('est_public'),
         ]);
 
+      
+
         return redirect()->route('journal.index')->with('success', 'Entrée ajoutée avec succès.');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(JournalEntry $journalEntry)
-    {
-        // Vérifie que l'entrée est bien publique
-    if (!$journalEntry->est_public) {
-        abort(403, 'Cette entrée est privée.');
+   public function show(JournalEntry $journalEntry)
+{
+    if ($journalEntry->user_id !== Auth::id() && !$journalEntry->est_public) {
+        abort(403, 'Tu n\'as pas accès à cette entrée.');
     }
 
-    return view('journal.public_show', compact('journalEntry'));
-    }
+    return view('journal.show', compact('journalEntry'));
+}
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(JournalEntry $journalEntry)
+   
+
+     public function edit(JournalEntry $journalEntry)
     {
          $this->authorize('update', $journalEntry);
         return view('journal.edit', compact('journalEntry'));
     }
+
+    
 
     /**
      * Update the specified resource in storage.
@@ -112,15 +122,13 @@ class JournalEntryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(JournalEntry $journalEntry)
-    {
-        $this->authorize('delete', $journalEntry);
-        if ($journalEntry->image) {
-            Storage::disk('public')->delete($journalEntry->image);
-        }
-        $journalEntry->delete();
-        return redirect()->route('journal.index')->with('success', 'Entrée supprimée.');
-    }
+
+     public function destroy(JournalEntry $journalEntry)
+   {
+    $this->authorize('delete', $journalEntry);
+    
+   }
+    
 
     public function publicEntries()
     {

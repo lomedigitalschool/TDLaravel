@@ -35,18 +35,24 @@ class JournalEntryPolicy
     /**
      * Determine whether the user can update the model.
      */
+    
+    
+
     public function update(User $user, JournalEntry $journalEntry): bool
-    {
-         return $user->id === $entry->user_id;
-    }
+{
+    return $user->id === $journalEntry->user_id; 
+}
 
     /**
      * Determine whether the user can delete the model.
      */
+   
+
     public function delete(User $user, JournalEntry $journalEntry): bool
-    {
-          return $user->id === $entry->user_id;
-    }
+   {
+    return $user->id === $journalEntry->user_id;
+   }
+
 
     /**
      * Determine whether the user can restore the model.
