@@ -8,8 +8,10 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::get('/', function () {
-    return view('home'); // Vue publique non protégée
-})->name('home');
+    return view('welcome'); // Page publique
+})->name('welcome');
+
+Route::get('/home', [TodoController::class, 'index'])->middleware(['auth'])->name('home');
 
 
 // Tableau de bord : liste les todos de l'utilisateur connecté
