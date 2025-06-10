@@ -22,13 +22,14 @@ WORKDIR /var/www
 # Étape 5 : Copier les fichiers de l'application
 COPY . .
 
+# Nettoyer le cache Laravel pour éviter les références à d'anciens providers
+RUN rm -rf bootstrap/cache/*.php
+
 # Étape 6 : Copier le fichier .env.example en .env s’il n’existe pas
 RUN cp .env.example .env
 
-# Étape 7 : Installer les dépendances PHP avec Composer
+# Étape 7 : Installer les dépendances PHP avec Composer (prod uniquement)
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
-
-RUN rm -rf bootstrap/cache/*.php
 
 # Étape 8 : Donner les bonnes permissions (important pour storage et bootstrap/cache)
 RUN chown -R www-data:www-data /var/www \
