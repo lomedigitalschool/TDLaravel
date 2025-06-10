@@ -34,7 +34,7 @@ jobs:
             mkdir -p $HOME/apps/carnet-de-recettes-laravel/docker/nginx
             cd $HOME/apps/carnet-de-recettes-laravel
 
-            echo "📄 Création de nginx.conf..."
+            echo "📄 Création du fichier nginx.conf..."
             cat << 'EOF' > docker/nginx/nginx.conf
             server {
                 listen 80;
@@ -51,8 +51,8 @@ jobs:
                     include fastcgi_params;
                     fastcgi_pass carnet-app:9000;
                     fastcgi_index index.php;
-                    fastcgi_param  SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-                    fastcgi_param  DOCUMENT_ROOT \$document_root;
+                    fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+                    fastcgi_param DOCUMENT_ROOT \$document_root;
                 }
 
                 location ~ /\.ht {
@@ -167,4 +167,6 @@ jobs:
             done
 
             echo "❌ L'application ne répond pas après 10 tentatives."
+            docker logs carnet-app
+            docker logs carnet-nginx
             exit 1
