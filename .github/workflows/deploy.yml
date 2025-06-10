@@ -31,8 +31,35 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script: |
             echo "📁 Création du dossier de déploiement..."
-            mkdir -p $HOME/apps/carnet-de-recettes-laravel
+            mkdir -p $HOME/apps/carnet-de-recettes-laravel/docker/nginx
             cd $HOME/apps/carnet-de-recettes-laravel
+
+            echo "📄 Création de nginx.conf..."
+            cat << 'EOF' > docker/nginx/nginx.conf
+            server {
+                listen 80;
+                index index.php index.html;
+                server_name localhost;
+
+                root /var/www/public;
+
+                location / {
+                    try_files \$uri \$uri/ /index.php?\$query_string;
+                }
+
+                location ~ \.php\$ {
+                    include fastcgi_params;
+                    fastcgi_pass carnet-app:9000;
+                    fastcgi_index index.php;
+                    fastcgi_param  SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+                    fastcgi_param  DOCUMENT_ROOT \$document_root;
+                }
+
+                location ~ /\.ht {
+                    deny all;
+                }
+            }
+            EOF
 
             echo "🔧 Création du réseau Docker s'il n'existe pas..."
             docker network create carnet-network || true
@@ -50,8 +77,6 @@ jobs:
 
             echo "📄 Création de docker-compose.yml..."
             cat << 'EOF' > docker-compose.yml
-            
-
             services:
               app:
                 container_name: carnet-app
@@ -82,7 +107,7 @@ jobs:
                 ports:
                   - "9010:80"
                 volumes:
-                  - ./nginx.conf:/etc/nginx/nginx.conf:ro
+                  - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
                   - carnet-app-public:/var/www/public
                 depends_on:
                   - app
