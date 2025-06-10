@@ -82,6 +82,9 @@ jobs:
             echo "🧹 Arrêt des anciens conteneurs..."
             docker compose down || true
 
+            # Injection du .env depuis le secret GitHub
+            echo "${{ secrets.LARAVEL_ENV }}" > .env
+
             echo "🚀 Lancement des nouveaux conteneurs..."
             docker compose up -d
 
