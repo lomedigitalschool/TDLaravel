@@ -28,17 +28,13 @@ RUN cp .env.example .env
 # Étape 7 : Installer les dépendances PHP avec Composer
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
+RUN rm -rf bootstrap/cache/*.php
+
 # Étape 8 : Donner les bonnes permissions (important pour storage et bootstrap/cache)
 RUN chown -R www-data:www-data /var/www \
     && chmod -R 775 storage bootstrap/cache
     
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
-
-# Étape 9 : Générer la clé de l'application Laravel
-RUN php artisan key:generate
-
-# Étape 10 : Lancer les migrations (optionnel selon besoin)
-RUN php artisan migrate --force || true
 
 # Étape 11 : Exposer le port du conteneur
 EXPOSE 9000

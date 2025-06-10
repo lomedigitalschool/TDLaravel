@@ -1,6 +1,6 @@
 # Ne pas inclure les dépendances locales
 node_modules
-vendor
+
 
 # Fichiers système / IDE
 .DS_Store
