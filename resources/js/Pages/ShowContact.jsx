@@ -10,7 +10,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, Contact, Mail, Phone } from 'lucide-react';
+import { ArrowLeft, Mail, Phone } from 'lucide-react';
 
 export default function ShowContact(contact) {
     return (
@@ -38,7 +38,8 @@ export default function ShowContact(contact) {
                                     className="m-10 h-20 w-20 rounded-full"
                                 />
                             )}
-                            {Contact.firstname} {Contact.lastname}
+                            {contact.contact.firstname}{' '}
+                            {contact.contact.lastname}
                         </CardTitle>
                         <CardDescription>Details du contact</CardDescription>
                     </CardHeader>

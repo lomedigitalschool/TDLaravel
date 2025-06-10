@@ -125,7 +125,12 @@ export default function ContactModal({
                                 id="firstname"
                                 value={data.firstname}
                                 onChange={(e) =>
-                                    setData('firstname', e.target.value)
+                                    setData(
+                                        'firstname',
+                                        e.target.value
+                                            ? e.target.value
+                                            : data.firstname,
+                                    )
                                 }
                                 className={errors.firstname && 'border-red-500'}
                             />

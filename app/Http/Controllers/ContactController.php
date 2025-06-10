@@ -89,6 +89,15 @@ class ContactController extends Controller
 
         $this->authorize('update', $contact);
         $validated = $request->validated();
+        if ($request->hasFile('image_path')) {
+        // Optionnel : supprimer l’ancienne image si elle existe
+        if ($contact->image_path) {
+            Storage::disk('public')->delete($contact->image_path);
+        }
+
+        // Stocker la nouvelle image
+        $validated['image_path'] = $request->file('image_path')->store('images', 'public');
+        }
         $this->contactService->updateContact($contact,$validated);
         return Redirect::route('dashboard')->with('success','contact mise a jour à avec succès');
         

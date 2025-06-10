@@ -10,7 +10,7 @@ export const Schema = yup
         notes: yup.string().nullable(),
         image_path: yup
             .mixed()
-            .required('Une image est requise')
+            .nullable('Une image est requise')
             .test(
                 'fileType',
                 'Seules les images JPEG/PNG/GIF sont autorisées',
