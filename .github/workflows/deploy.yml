@@ -82,7 +82,7 @@ jobs:
 
             echo "📄 Création de docker-compose.yml..."
             cat << 'EOF' > docker-compose.yml
-            version: "3.8"
+            
 
             services:
               app:
@@ -161,6 +161,8 @@ jobs:
 
             echo "🔧 Correction des permissions dans le conteneur Laravel..."
             docker exec carnet-app chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+            docker exec carnet-app chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+
 
             echo "🧪 Vérification que l'application est accessible..."
             for i in {1..10}; do
